@@ -1,19 +1,15 @@
 public abstract class Goal
 {
-    protected string _name;
-    protected string _description;
-    protected int _points;
+    public string Name { get; set; }
+    public int Points { get; set; }
 
-    public Goal(string name, string description, int points)
+    public Goal(string name, int points)
     {
-        _name = name;
-        _description = description;
-        _points = points;
+        Name = name;
+        Points = points;
     }
 
     public abstract int RecordEvent();
-    public abstract bool IsComplete();
-    public virtual string GetDetailsString() => $"[ ] {_name} ({_description})";
-    public virtual string GetSaveString() => $"{GetType().Name}|{_name}|{_description}|{_points}";
+    public abstract string GetStatus();
+    public virtual string GetDetails() => $"{Name} ({Points} pts)";
 }
-

@@ -1,120 +1,100 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 
 public class GoalManager
 {
-    private List<Goal> _goals = new List<Goal>();
+    private List<Goal> _goals = new();
     private int _score = 0;
 
-    public void Start()
+    public void CreateGoal()
     {
-        string choice;
-        do
-        {
-            Console.WriteLine($"\nScore: {_score}");
-            Console.WriteLine("1. Create Goal\n2. List Goals\n3. Record Event\n4. Save Goals\n5. Load Goals\n6. Quit");
-            Console.Write("Select an option: ");
-            choice = Console.ReadLine();
-
-            switch (choice)
-            {
-                case "1": CreateGoal(); break;
-                case "2": ListGoals(); break;
-                case "3": RecordEvent(); break;
-                case "4": SaveGoals(); break;
-                case "5": LoadGoals(); break;
-            }
-        } while (choice != "6");
-    }
-
-    private void CreateGoal()
-    {
-        Console.WriteLine("\nChoose goal type:\n1. Simple\n2. Eternal\n3. Checklist");
-        Console.Write("Option: ");
-        string type = Console.ReadLine();
-
-        Console.Write("Name: ");
+        Console.Write("Enter goal name: ");
         string name = Console.ReadLine();
-        Console.Write("Description: ");
-        string desc = Console.ReadLine();
-        Console.Write("Points: ");
+
+        Console.Write("Enter points for completion: ");
         int points = int.Parse(Console.ReadLine());
 
-        switch (type)
+        Console.WriteLine("Choose goal type: 1) Simple 2) Eternal 3) Checklist");
+        string type = Console.ReadLine();
+
+        Goal goal = type switch
         {
-            case "1": _goals.Add(new SimpleGoal(name, desc, points)); break;
-            case "2": _goals.Add(new EternalGoal(name, desc, points)); break;
-            case "3":
-                Console.Write("Target Count: ");
-                int target = int.Parse(Console.ReadLine());
-                Console.Write("Bonus: ");
-                int bonus = int.Parse(Console.ReadLine());
-                _goals.Add(new ChecklistGoal(name, desc, points, target, bonus));
-                break;
-        }
+            "1" => new SimpleGoal(name, points),
+            "2" => new EternalGoal(name, points),
+            "3" => CreateChecklistGoal(name, points),
+            _ => null
+        };
+
+        if (goal != null) _goals.Add(goal);
     }
 
-    private void ListGoals()
+    private Goal CreateChecklistGoal(string name, int points)
     {
+        Console.Write("Enter times needed to complete: ");
+        int target = int.Parse(Console.ReadLine());
+
+        Console.Write("Enter bonus points: ");
+        int bonus = int.Parse(Console.ReadLine());
+
+        return new ChecklistGoal(name, points, target, bonus);
+    }
+
+    public void ListGoals()
+    {
+        Console.WriteLine("--- Goals ---");
         for (int i = 0; i < _goals.Count; i++)
         {
-            Console.WriteLine($"{i + 1}. {_goals[i].GetDetailsString()}");
+            Console.WriteLine($"{i + 1}. {_goals[i].GetStatus()} {_goals[i].GetDetails()}");
         }
     }
 
-    private void RecordEvent()
+    public void SaveGoals()
     {
-        ListGoals();
-        Console.Write("\nWhich goal did you complete? ");
-        int i = int.Parse(Console.ReadLine()) - 1;
-        if (i >= 0 && i < _goals.Count)
+        using StreamWriter writer = new("goals.txt");
+        writer.WriteLine(_score);
+        foreach (var goal in _goals)
         {
-            int gained = _goals[i].RecordEvent();
-            _score += gained;
-            Console.WriteLine($"You earned {gained} points!");
+            writer.WriteLine($"{goal.GetType().Name}|{goal.Name}|{goal.Points}");
         }
     }
 
-    private void SaveGoals()
+    public void LoadGoals()
     {
-        using (StreamWriter writer = new StreamWriter("goals.txt"))
-        {
-            writer.WriteLine(_score);
-            foreach (Goal g in _goals)
-            {
-                writer.WriteLine(g.GetSaveString());
-            }
-        }
-        Console.WriteLine("Saved successfully.");
-    }
+        if (!File.Exists("goals.txt")) return;
 
-    private void LoadGoals()
-    {
-        _goals.Clear();
         string[] lines = File.ReadAllLines("goals.txt");
         _score = int.Parse(lines[0]);
+        _goals.Clear();
 
         for (int i = 1; i < lines.Length; i++)
         {
             string[] parts = lines[i].Split('|');
-            switch (parts[0])
+            string type = parts[0];
+            string name = parts[1];
+            int points = int.Parse(parts[2]);
+
+            _goals.Add(type switch
             {
-                case "SimpleGoal":
-                    SimpleGoal sg = new SimpleGoal(parts[1], parts[2], int.Parse(parts[3]));
-                    if (bool.TryParse(parts[4], out bool isComplete) && isComplete)
-                        sg.RecordEvent();
-                    _goals.Add(sg);
-                    break;
-                case "EternalGoal":
-                    _goals.Add(new EternalGoal(parts[1], parts[2], int.Parse(parts[3])));
-                    break;
-                case "ChecklistGoal":
-                    ChecklistGoal cg = new ChecklistGoal(parts[1], parts[2], int.Parse(parts[3]), int.Parse(parts[5]), int.Parse(parts[4]));
-                    for (int j = 0; j < int.Parse(parts[6]); j++)
-                        cg.RecordEvent();
-                    _goals.Add(cg);
-                    break;
-            }
+                "SimpleGoal" => new SimpleGoal(name, points),
+                "EternalGoal" => new EternalGoal(name, points),
+                "ChecklistGoal" => new ChecklistGoal(name, points, 5, 100), // default
+                _ => null
+            });
         }
-        Console.WriteLine("Goals loaded successfully.");
+    }
+
+    public void RecordEvent()
+    {
+        ListGoals();
+        Console.Write("Which goal did you complete? ");
+        int index = int.Parse(Console.ReadLine()) - 1;
+        _score += _goals[index].RecordEvent();
+    }
+
+    public void ShowScore()
+    {
+        int level = _score / 500 + 1;
+        Console.WriteLine($"Score: {_score} pts | Level: {level}");
     }
 }
