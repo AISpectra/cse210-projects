@@ -1,22 +1,20 @@
-
+// Goal.cs
 public abstract class Goal
 {
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public int Points { get; set; }
+    protected string _name;
+    protected string _description;
+    protected int _points;
 
     public Goal(string name, string description, int points)
     {
-        Name = name;
-        Description = description;
-        Points = points;
+        _name = name;
+        _description = description;
+        _points = points;
     }
 
     public abstract int RecordEvent();
     public abstract bool IsComplete();
-    public virtual string GetDetailsString()
-    {
-        return $"[{(IsComplete() ? "X" : " ")}] {Name} ({Description})";
-    }
-    public abstract string GetStringRepresentation();
+    public virtual string GetDetailsString() => $"[ ] {_name} ({_description})";
+    public virtual string GetSaveString() => $"{GetType().Name}|{_name}|{_description}|{_points}";
 }
+
