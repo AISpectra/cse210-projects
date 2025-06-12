@@ -1,4 +1,3 @@
-// ChecklistGoal.cs
 public class ChecklistGoal : Goal
 {
     private int _targetCount;

@@ -1,4 +1,3 @@
-// Goal.cs
 public abstract class Goal
 {
     protected string _name;

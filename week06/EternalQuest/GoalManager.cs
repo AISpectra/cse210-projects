@@ -1,4 +1,3 @@
-// GoalManager.cs
 using System.IO;
 
 public class GoalManager
