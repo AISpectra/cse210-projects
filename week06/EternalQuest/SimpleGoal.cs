@@ -1,3 +1,4 @@
+
 public class SimpleGoal : Goal
 {
     private bool _isComplete;
@@ -9,21 +10,17 @@ public class SimpleGoal : Goal
 
     public override int RecordEvent()
     {
-        if (!_isComplete)
-        {
-            _isComplete = true;
-            return _points;
-        }
-        return 0;
+        _isComplete = true;
+        return Points;
+    }
+
+    public override bool IsComplete()
+    {
+        return _isComplete;
     }
 
     public override string GetStringRepresentation()
     {
-        return $"SimpleGoal|{_name}|{_description}|{_points}|{_isComplete}";
-    }
-
-    public override string GetDetailsString()
-    {
-        return $"[{"X"}] {_name} ({_description})";
+        return $"SimpleGoal|{Name}|{Description}|{Points}|{_isComplete}";
     }
 }
